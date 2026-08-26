@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>라잇웨잇 일정 투표</title>
-<style id="css">
+<style>
 :root{
   --primary:#0066cc; --primary-focus:#0071e3; --primary-on-dark:#2997ff;
   --canvas:#ffffff; --canvas-parchment:#f5f5f7; --surface-pearl:#fafafc;
@@ -12,7 +12,7 @@
   --chip-translucent:rgba(210,210,215,.64);
   --ink:#1d1d1f; --on-dark:#ffffff; --body-muted:#cccccc;
   --ink-muted-80:#333333; --ink-muted-48:#7a7a7a;
-  --divider-soft:rgba(0,0,0,.04); --hairline:#e0e0e0;
+  --hairline:#e0e0e0;
   --xxs:4px; --xs:8px; --sm:12px; --md:17px; --lg:24px; --xl:32px; --xxl:48px; --section:80px;
   --r-sm:8px; --r-md:11px; --r-lg:18px; --r-pill:9999px;
 }
@@ -31,7 +31,7 @@ button:active{transform:scale(.95);}
 .global-nav{
   position:sticky;top:0;z-index:50;height:44px;background:var(--surface-black);color:var(--on-dark);
   display:flex;align-items:center;gap:20px;padding:0 var(--lg);
-  font-size:12px;font-weight:400;letter-spacing:-.12px;line-height:1;
+  font-size:12px;letter-spacing:-.12px;line-height:1;
 }
 .global-nav .mark{font-weight:600;}
 .global-nav .spacer{flex:1;}
@@ -68,9 +68,16 @@ button:active{transform:scale(.95);}
 
 h1.hero{font-size:56px;font-weight:600;line-height:1.07;letter-spacing:-.28px;margin:0 0 var(--md);text-wrap:balance;}
 h2.display{font-size:40px;font-weight:600;line-height:1.10;margin:0 0 var(--sm);text-wrap:balance;}
-.lead{font-size:28px;font-weight:400;line-height:1.14;letter-spacing:.196px;margin:0;color:var(--ink-muted-80);}
+.lead{font-size:28px;line-height:1.14;letter-spacing:.196px;margin:0;color:var(--ink-muted-80);}
 .tagline{font-size:21px;font-weight:600;line-height:1.19;letter-spacing:.231px;margin:0 0 var(--lg);}
 .caption{font-size:14px;letter-spacing:-.224px;color:var(--ink-muted-48);}
+
+.setup-note{
+  max-width:980px;margin:0 auto var(--lg);background:var(--canvas);border:1px solid var(--hairline);
+  border-radius:var(--r-lg);padding:var(--md) var(--lg);text-align:left;
+  font-size:14px;letter-spacing:-.224px;color:var(--ink-muted-80);
+}
+.setup-note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--ink);}
 
 .btn-primary{background:var(--primary);color:#fff;font-size:17px;border-radius:var(--r-pill);padding:11px 22px;line-height:1.2;}
 .btn-ghost-pill{background:transparent;color:var(--primary);border:1px solid var(--primary);font-size:17px;border-radius:var(--r-pill);padding:11px 22px;line-height:1.2;}
@@ -98,9 +105,10 @@ td.name-col{font-size:17px;letter-spacing:-.374px;}
 .del-btn{width:22px;height:22px;flex:0 0 22px;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;color:var(--ink-muted-48);border:1px solid var(--hairline);border-radius:50%;background:var(--surface-pearl);}
 .del-btn:active{transform:scale(.9);}
 td.vote-cell{padding:var(--xxs) var(--xs);text-align:center;}
-select.vote{-webkit-appearance:none;appearance:none;background:var(--canvas);color:var(--ink-muted-48);border:1px solid var(--hairline);border-radius:var(--r-pill);font-family:inherit;font-size:14px;letter-spacing:-.224px;padding:6px 14px;text-align:center;text-align-last:center;min-width:60px;cursor:pointer;}
+select.vote{-webkit-appearance:none;appearance:none;background:var(--canvas);color:var(--ink-muted-48);border:1px solid var(--hairline);border-radius:var(--r-pill);font-family:inherit;font-size:14px;letter-spacing:-.224px;padding:6px 14px;text-align:center;text-align-last:center;min-width:60px;cursor:pointer;transition:box-shadow .5s ease;}
 select.vote.is-o{border:2px solid var(--primary-focus);color:var(--primary);font-weight:600;}
 select.vote.is-x{border:1px solid var(--hairline);color:var(--ink);font-weight:600;background:var(--canvas-parchment);}
+select.vote.just-changed{box-shadow:0 0 0 4px rgba(41,151,255,.28);}
 .add-btn{font-size:14px;letter-spacing:-.224px;color:var(--primary);border:1px solid var(--hairline);border-radius:var(--r-pill);padding:6px 16px;background:var(--surface-pearl);}
 .add-form{display:flex;gap:var(--xs);align-items:center;}
 input.name-input{font-family:inherit;font-size:17px;letter-spacing:-.374px;color:var(--ink);background:var(--canvas);border:1px solid rgba(0,0,0,.08);border-radius:var(--r-pill);padding:8px 16px;height:40px;width:130px;}
@@ -120,7 +128,6 @@ input.name-input:focus{outline:2px solid var(--primary-focus);}
 .rank-item.is-top{
   background:var(--surface-tile-2);border:1px solid rgba(41,151,255,.28);border-radius:var(--r-lg);
   padding:var(--md) var(--lg);margin:var(--xs) 0;transform:scale(1.06);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
 }
 .rank-item.is-top::before{
   content:'';position:absolute;inset:-6px;z-index:-1;border-radius:calc(var(--r-lg) + 6px);
@@ -155,165 +162,303 @@ footer .fine{font-size:12px;letter-spacing:-.12px;color:var(--ink-muted-48);marg
 </style>
 </head>
 <body>
-<div id="root"></div>
-<script id="state" type="application/json">{"v":1,"year":2026,"month":null,"active":false,"members":["조윤호","주재민","강현수","민대인","봉원훈","송지성","신규진","신혜빈","유성호","이정주","이창윤","조용문","허석원","김은정","최광래","이지은","이세민","이한슬","박예리","김재형","이희연","이경희","정우진","김지현","이성호","강동우","이건희","오진우"],"votes":{}}</script>
 
-<script id="app">
-(function(){
-'use strict';
+<nav class="global-nav">
+  <span class="mark">라잇웨잇</span>
+  <a href="#pick">일정</a><a href="#vote">투표</a><a href="#result">결과</a>
+  <span class="spacer"></span><a href="#result">Results</a>
+</nav>
 
+<div class="sub-nav">
+  <span class="cat">일정 투표</span>
+  <span class="spacer"></span>
+  <span class="sync" id="sync" data-tone="idle"><span class="dot"></span><span class="label" id="syncLabel">연결 중</span></span>
+</div>
+
+<section class="tile tile-parchment" id="pick">
+  <div class="wrap center">
+    <h1 class="hero">언제 모일까요.</h1>
+    <p class="lead">연도와 달을 고르면, 평일만 추린 투표표가 열립니다.</p>
+
+    <div class="setup-note" id="setupNote" hidden></div>
+
+    <div class="btn-row">
+      <button class="btn-primary" id="btnActivate" aria-pressed="false">Activate</button>
+      <button class="btn-ghost-pill" id="btnInactive" aria-pressed="true">Inactive</button>
+    </div>
+
+    <div class="picker is-inactive" id="picker" aria-disabled="true">
+      <div class="year-row">
+        <button class="icon-circ" id="yearPrev" aria-label="이전 연도">&#8249;</button>
+        <span class="year-val" id="yearVal">—</span>
+        <button class="icon-circ" id="yearNext" aria-label="다음 연도">&#8250;</button>
+      </div>
+      <div class="month-grid" id="monthGrid"></div>
+      <p class="picker-hint caption" id="pickerHint"></p>
+    </div>
+  </div>
+</section>
+
+<section class="tile tile-light" id="vote">
+  <div class="wrap-wide">
+    <div class="center">
+      <h2 class="display" id="tableTitle">투표표</h2>
+      <p class="lead" id="tableSub">주말을 제외한 평일에 O / X 를 선택하세요.</p>
+    </div>
+    <div id="tableArea"></div>
+  </div>
+</section>
+
+<section class="tile tile-dark center" id="result">
+  <div class="wrap">
+    <p class="tagline" style="color:var(--primary-on-dark);">종합 결과</p>
+    <h2 class="result-hero" id="bestDay">—</h2>
+    <p class="result-sub" id="bestMeta">아직 투표가 없습니다.</p>
+    <div class="rank-list" id="rankList"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap"><p class="fine" id="footNote">라잇웨잇 동호회 일정 투표</p></div>
+</footer>
+
+<script type="module">
 /* ============================================================
-   공유 상태 — 이 페이지가 곧 기록입니다.
-   투표가 바뀌면 상태를 새 HTML로 발행해서 모든 사람이 같은 값을 봅니다.
+   ① 여기 두 줄만 본인 프로젝트 값으로 바꾸세요.
+      Supabase 대시보드 → Settings → API 에서 복사합니다.
    ============================================================ */
-var DEFAULT_MEMBERS = ['조윤호','주재민','강현수','민대인','봉원훈','송지성','신규진','신혜빈',
+const SUPABASE_URL = 'https://qjtoktofqbyhepezhdcb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-ZBSv9BOrilczEtV9Ai_Uw_BuqCb0hS';
+
+/* 값을 안 넣으면 이 브라우저 안에서만 도는 로컬 모드로 실행됩니다. */
+const CONFIGURED = SUPABASE_URL.startsWith('http') && SUPABASE_KEY.length > 20;
+
+const DEFAULT_MEMBERS = ['조윤호','주재민','강현수','민대인','봉원훈','송지성','신규진','신혜빈',
   '유성호','이정주','이창윤','조용문','허석원','김은정','최광래','이지은',
   '이세민','이한슬','박예리','김재형','이희연','이경희','정우진','김지현',
   '이성호','강동우','이건희','오진우'];
 
-var S;
-try { S = JSON.parse(document.getElementById('state').textContent); } catch(e){ S = null; }
-if(!S || typeof S !== 'object') S = {};
-if(!Array.isArray(S.members) || !S.members.length) S.members = DEFAULT_MEMBERS.slice();
-if(!S.votes || typeof S.votes !== 'object') S.votes = {};
-if(!S.year) S.year = new Date().getFullYear();
-if(!('month' in S)) S.month = null;
-if(!('active' in S)) S.active = false;
+const DOW = ['일','월','화','수','목','금','토'];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-var DOW = ['일','월','화','수','목','금','토'];
-var api = null, readOnly = false, timer = null, pending = false;
-var $ = function(id){ return document.getElementById(id); };
-var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+/* 화면 상태 — 항상 서버가 진실이고, 이건 그 사본입니다. */
+const S = {
+  year: new Date().getFullYear(),
+  month: null,
+  active: false,
+  members: [],            // [{name, sort_order}]
+  votes: {}               // { 이름: { 일: 'O'|'X' } }  ← 현재 보고 있는 달만
+};
 
-/* ---------- 페이지 골격 ---------- */
-var SHELL =
-'<nav class="global-nav"><span class="mark">라잇웨잇</span>' +
-'<a href="#pick">일정</a><a href="#vote">투표</a><a href="#result">결과</a>' +
-'<span class="spacer"></span><a href="#result">Results</a></nav>' +
+let sb = null;
 
-'<div class="sub-nav"><span class="cat">일정 투표</span><span class="spacer"></span>' +
-'<span class="sync" id="sync" data-tone="idle"><span class="dot"></span><span class="label" id="syncLabel">준비 중</span></span></div>' +
-
-'<section class="tile tile-parchment" id="pick"><div class="wrap center">' +
-'<h1 class="hero">언제 모일까요.</h1>' +
-'<p class="lead">연도와 달을 고르면, 평일만 추린 투표표가 열립니다.</p>' +
-'<div class="btn-row">' +
-'<button class="btn-primary" id="btnActivate" aria-pressed="false">Activate</button>' +
-'<button class="btn-ghost-pill" id="btnInactive" aria-pressed="true">Inactive</button></div>' +
-'<div class="picker is-inactive" id="picker" aria-disabled="true">' +
-'<div class="year-row"><button class="icon-circ" id="yearPrev" aria-label="이전 연도">&#8249;</button>' +
-'<span class="year-val" id="yearVal">—</span>' +
-'<button class="icon-circ" id="yearNext" aria-label="다음 연도">&#8250;</button></div>' +
-'<div class="month-grid" id="monthGrid"></div>' +
-'<p class="picker-hint caption" id="pickerHint"></p></div></div></section>' +
-
-'<section class="tile tile-light" id="vote"><div class="wrap-wide">' +
-'<div class="center"><h2 class="display" id="tableTitle">투표표</h2>' +
-'<p class="lead" id="tableSub">주말을 제외한 평일에 O / X 를 선택하세요.</p></div>' +
-'<div id="tableArea"></div></div></section>' +
-
-'<section class="tile tile-dark center" id="result"><div class="wrap">' +
-'<p class="tagline" style="color:var(--primary-on-dark);">종합 결과</p>' +
-'<h2 class="result-hero" id="bestDay">—</h2>' +
-'<p class="result-sub" id="bestMeta">아직 투표가 없습니다.</p>' +
-'<div class="rank-list" id="rankList"></div></div></section>' +
-
-'<footer><div class="wrap"><p class="fine" id="footNote">' +
-'라잇웨잇 동호회 일정 투표 · 이 페이지에 입력한 값은 자동 저장되어 링크를 연 모두에게 같이 보입니다.' +
-'</p></div></footer>';
-
-/* ============================================================
-   저장 — 상태를 담은 완전한 문서를 다시 발행
-   ============================================================ */
-function serialize(){
-  var css  = document.getElementById('css').textContent;
-  var js   = document.getElementById('app').textContent;
-  var json = JSON.stringify(S).replace(/</g, '\\u003c');
-  return '<!doctype html>\n<html lang="ko">\n<head>\n' +
-    '<meta charset="utf-8">\n' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
-    '<title>라잇웨잇 일정 투표</title>\n' +
-    '<style id="css">' + css + '</style>\n</head>\n<body>\n' +
-    '<div id="root"></div>\n' +
-    '<script id="state" type="application/json">' + json + '<\/script>\n' +
-    '<script id="app">' + js + '<\/script>\n' +
-    '</body>\n</html>';
-}
-
+/* ---------- 상태 칩 ---------- */
 function setSync(tone, label){
-  var el = $('sync'); if(!el) return;
-  el.setAttribute('data-tone', tone);
+  $('sync').setAttribute('data-tone', tone);
   $('syncLabel').textContent = label;
 }
+let errTimer = null;
+function flashError(msg){
+  setSync('warn', msg);
+  clearTimeout(errTimer);
+  errTimer = setTimeout(() => setSync(sb ? 'ok' : 'warn', sb ? '연결됨' : '로컬 모드'), 4000);
+}
 
-function save(){
-  if(readOnly){ setSync('warn', '읽기 전용 · 저장 안 됨'); return; }
-  if(!api){ setSync('warn', '미리보기 · 저장 안 됨'); return; }
-  pending = true;
+/* ============================================================
+   Supabase 연결
+   ============================================================ */
+async function connect(){
+  if(!CONFIGURED){
+    setSync('warn', '로컬 모드');
+    $('setupNote').hidden = false;
+    $('setupNote').innerHTML =
+      '<strong>아직 Supabase에 연결되지 않았습니다.</strong> 지금은 이 브라우저 안에서만 동작하고, ' +
+      '새로고침하면 초기화됩니다. 파일을 열어 <code>SUPABASE_URL</code> 과 <code>SUPABASE_KEY</code> ' +
+      '두 줄을 본인 프로젝트 값으로 바꾸면 실시간 공유가 켜집니다.';
+    $('footNote').textContent = '라잇웨잇 동호회 일정 투표 · 로컬 모드 (저장되지 않음)';
+    S.members = DEFAULT_MEMBERS.map((name, i) => ({ name, sort_order: i + 1 }));
+    return;
+  }
+
+  try {
+    // CDN이 막혀 있거나 느릴 때 페이지가 멈추지 않도록 10초 제한
+    const mod = await Promise.race([
+      import('https://esm.sh/@supabase/supabase-js@2'),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000))
+    ]);
+    sb = mod.createClient(SUPABASE_URL, SUPABASE_KEY);
+  } catch (e) {
+    sb = null;
+    setSync('warn', '연결 실패 · 로컬 모드');
+    S.members = DEFAULT_MEMBERS.map((name, i) => ({ name, sort_order: i + 1 }));
+    return;
+  }
+
+  await loadBoard();
+  await loadMembers();
+  await loadVotes();
+  subscribe();
+  setSync('ok', '연결됨');
+  $('footNote').textContent = '라잇웨잇 동호회 일정 투표 · 입력하는 즉시 저장되고 모두의 화면에 반영됩니다.';
+}
+
+const monthKey = () => S.month ? S.year + '-' + String(S.month).padStart(2,'0') : null;
+
+async function loadBoard(){
+  const { data, error } = await sb.from('board').select('*').eq('id', 1).maybeSingle();
+  if(error){ flashError('설정을 읽지 못했습니다'); return; }
+  if(data){ S.year = data.year || S.year; S.month = data.month; S.active = !!data.active; }
+}
+
+async function loadMembers(){
+  const { data, error } = await sb.from('members').select('name, sort_order').order('sort_order');
+  if(error){ flashError('명단을 읽지 못했습니다'); return; }
+  S.members = data || [];
+}
+
+async function loadVotes(){
+  S.votes = {};
+  const key = monthKey();
+  if(!key) return;
+  const { data, error } = await sb.from('votes').select('member, day, value').eq('month', key);
+  if(error){ flashError('투표를 읽지 못했습니다'); return; }
+  (data || []).forEach(r => {
+    if(!S.votes[r.member]) S.votes[r.member] = {};
+    S.votes[r.member][r.day] = r.value;
+  });
+}
+
+/* ============================================================
+   쓰기 — 바뀐 셀 하나만 보냅니다 (서로 덮어쓰지 않도록)
+   ============================================================ */
+async function writeVote(member, day, value){
+  if(!sb) return;
   setSync('busy', '저장 중');
-  clearTimeout(timer);
-  timer = setTimeout(function(){
-    api.publish(serialize()).then(function(){
-      pending = false;
-      setSync('ok', '저장됨');
-    }).catch(function(err){
-      var code = (err && (err.code || err.name)) || '';
-      if(code === 'conflict'){ setSync('busy', '최신 내용 불러오는 중'); return; }
-      if(code === 'not_granted' || code === 'not_writer'){
-        readOnly = true; setSync('warn', '읽기 전용 · 저장 안 됨');
-        $('footNote').textContent = '읽기 전용으로 열렸습니다. 화면에서 바꾼 값은 다른 사람에게 저장되지 않습니다.';
-        return;
+  const key = monthKey();
+  const q = value
+    ? sb.from('votes').upsert({ month:key, member, day, value, updated_at:new Date().toISOString() })
+    : sb.from('votes').delete().match({ month:key, member, day });
+  const { error } = await q;
+  if(error) flashError('저장 실패 · 다시 시도하세요');
+  else setSync('ok', '저장됨');
+}
+
+async function writeBoard(){
+  if(!sb) return;
+  setSync('busy', '저장 중');
+  const { error } = await sb.from('board')
+    .upsert({ id:1, year:S.year, month:S.month, active:S.active });
+  if(error) flashError('저장 실패 · 다시 시도하세요');
+  else setSync('ok', '저장됨');
+}
+
+async function writeAddMember(name){
+  if(!sb) return;
+  const next = S.members.reduce((m, x) => Math.max(m, x.sort_order || 0), 0) + 1;
+  const { error } = await sb.from('members').insert({ name, sort_order: next });
+  if(error) flashError(error.code === '23505' ? '이미 있는 이름입니다' : '추가 실패');
+}
+
+async function writeDeleteMember(name){
+  if(!sb) return;
+  await sb.from('votes').delete().eq('member', name);
+  const { error } = await sb.from('members').delete().eq('name', name);
+  if(error) flashError('삭제 실패');
+}
+
+/* ============================================================
+   실시간 수신 — 남이 바꾼 것만 그 자리에 반영
+   ============================================================ */
+function subscribe(){
+  sb.channel('vote-board')
+    .on('postgres_changes', { event:'*', schema:'public', table:'votes' }, (p) => {
+      const row = p.new && p.new.month ? p.new : p.old;
+      if(!row || row.month !== monthKey()) return;          // 다른 달이면 무시
+      if(p.eventType === 'DELETE'){
+        if(S.votes[row.member]) delete S.votes[row.member][row.day];
+      } else {
+        if(!S.votes[row.member]) S.votes[row.member] = {};
+        S.votes[row.member][row.day] = row.value;
       }
-      setSync('warn', '저장 실패 · 다시 시도하세요');
+      patchCell(row.member, row.day, p.eventType === 'DELETE' ? '' : row.value);
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'members' }, async () => {
+      await loadMembers();
+      await loadVotes();
+      renderTable();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'board' }, async (p) => {
+      const b = p.new;
+      if(!b) return;
+      const monthChanged = b.year !== S.year || b.month !== S.month;
+      S.year = b.year; S.month = b.month; S.active = !!b.active;
+      if(monthChanged) await loadVotes();
+      renderAll();
+    })
+    .subscribe((status) => {
+      if(status === 'SUBSCRIBED') setSync('ok', '연결됨');
+      if(status === 'CHANNEL_ERROR') flashError('실시간 연결 끊김');
     });
-  }, 700);
+}
+
+/* 셀 하나만 갱신 — 표 전체를 다시 그리지 않아 입력 중 화면이 튀지 않습니다. */
+function patchCell(member, day, value){
+  const sel = document.querySelector(
+    'select.vote[data-name="' + (window.CSS && CSS.escape ? CSS.escape(member) : member) + '"][data-day="' + day + '"]'
+  );
+  if(sel){
+    sel.value = value || '';
+    sel.className = 'vote' + (value === 'O' ? ' is-o' : (value === 'X' ? ' is-x' : '')) + ' just-changed';
+    setTimeout(() => sel.classList.remove('just-changed'), 900);
+  }
+  renderResult(weekdaysOf(S.year, S.month));
 }
 
 /* ============================================================
    렌더
    ============================================================ */
-function setActive(on){
-  S.active = on;
-  if(!on) S.month = null;
-  renderAll(); save();
-}
-
 function renderPicker(){
   $('btnActivate').setAttribute('aria-pressed', String(S.active));
   $('btnInactive').setAttribute('aria-pressed', String(!S.active));
   $('picker').classList.toggle('is-inactive', !S.active);
   $('picker').setAttribute('aria-disabled', String(!S.active));
   $('pickerHint').textContent = S.active
-    ? '달을 선택하면 아래에 표가 만들어집니다.'
+    ? '달을 선택하면 아래에 표가 만들어집니다. 선택한 달은 모두에게 똑같이 보입니다.'
     : '캘린더가 비활성 상태입니다. Activate를 누르세요.';
   $('yearVal').textContent = S.year + '년';
 
-  var g = $('monthGrid'); g.innerHTML = '';
-  for(var m=1;m<=12;m++){
-    (function(m){
-      var b = document.createElement('button');
-      b.className = 'month-chip' + (S.month===m ? ' selected' : '');
-      b.textContent = m + '월';
-      b.onclick = function(){ S.month = m; renderAll(); save(); };
-      g.appendChild(b);
-    })(m);
+  const g = $('monthGrid');
+  g.innerHTML = '';
+  for(let m = 1; m <= 12; m++){
+    const b = document.createElement('button');
+    b.className = 'month-chip' + (S.month === m ? ' selected' : '');
+    b.textContent = m + '월';
+    b.onclick = async () => {
+      S.month = m;
+      renderPicker();
+      if(sb) await loadVotes();
+      renderTable();
+      writeBoard();
+    };
+    g.appendChild(b);
   }
 }
 
 function weekdaysOf(year, month){
-  var out = [], last = new Date(year, month, 0).getDate();
-  for(var d=1; d<=last; d++){
-    var w = new Date(year, month-1, d).getDay();
-    if(w===0 || w===6) continue;
+  const out = [];
+  if(!month) return out;
+  const last = new Date(year, month, 0).getDate();
+  for(let d = 1; d <= last; d++){
+    const w = new Date(year, month - 1, d).getDay();
+    if(w === 0 || w === 6) continue;
     out.push({ day:d, label:d + '일(' + DOW[w] + ')' });
   }
   return out;
 }
-function monthKey(){ return S.year + '-' + S.month; }
-function bucket(){ var k = monthKey(); if(!S.votes[k]) S.votes[k] = {}; return S.votes[k]; }
 
 function renderTable(){
-  var area = $('tableArea');
+  const area = $('tableArea');
   if(!S.active || !S.month){
     area.innerHTML = '<div class="empty-state caption">먼저 <strong>Activate</strong> 후 연도와 달을 선택하세요.</div>';
     $('tableTitle').textContent = '투표표';
@@ -322,24 +467,24 @@ function renderTable(){
     return;
   }
 
-  var days = weekdaysOf(S.year, S.month), data = bucket();
+  const days = weekdaysOf(S.year, S.month);
   $('tableTitle').textContent = S.year + '년 ' + S.month + '월';
   $('tableSub').textContent = '평일 ' + days.length + '일 · 인원 ' + S.members.length + '명';
 
-  var html = '<div class="table-scroll"><table><thead><tr><th class="name-col">이름</th>';
-  days.forEach(function(d){ html += '<th>' + d.label + '</th>'; });
+  let html = '<div class="table-scroll"><table><thead><tr><th class="name-col">이름</th>';
+  days.forEach(d => { html += '<th>' + d.label + '</th>'; });
   html += '</tr></thead><tbody>';
 
-  S.members.forEach(function(name, i){
+  S.members.forEach(({ name }) => {
     html += '<tr><td class="name-col"><div class="name-cell"><span>' + esc(name) + '</span>' +
-            '<button class="del-btn" data-del="' + i + '" aria-label="' + esc(name) + ' 삭제">&#215;</button></div></td>';
-    days.forEach(function(d){
-      var v = (data[name] && data[name][d.day]) || '';
-      var cls = v==='O' ? ' is-o' : (v==='X' ? ' is-x' : '');
+            '<button class="del-btn" data-del="' + esc(name) + '" aria-label="' + esc(name) + ' 삭제">&#215;</button></div></td>';
+    days.forEach(d => {
+      const v = (S.votes[name] && S.votes[name][d.day]) || '';
+      const cls = v === 'O' ? ' is-o' : (v === 'X' ? ' is-x' : '');
       html += '<td class="vote-cell"><select class="vote' + cls + '" data-name="' + esc(name) + '" data-day="' + d.day + '">' +
-              '<option value=""' + (v===''?' selected':'') + '>–</option>' +
-              '<option value="O"' + (v==='O'?' selected':'') + '>O</option>' +
-              '<option value="X"' + (v==='X'?' selected':'') + '>X</option>' +
+              '<option value=""' + (v === '' ? ' selected' : '') + '>–</option>' +
+              '<option value="O"' + (v === 'O' ? ' selected' : '') + '>O</option>' +
+              '<option value="X"' + (v === 'X' ? ' selected' : '') + '>X</option>' +
               '</select></td>';
     });
     html += '</tr>';
@@ -350,23 +495,24 @@ function renderTable(){
           '<td class="vote-cell" colspan="' + days.length + '"></td></tr></tbody></table></div>';
   area.innerHTML = html;
 
-  area.querySelectorAll('select.vote').forEach(function(sel){
-    sel.addEventListener('change', function(){
-      var n = sel.dataset.name, d = sel.dataset.day, v = sel.value;
-      if(!data[n]) data[n] = {};
-      if(v) data[n][d] = v; else delete data[n][d];
-      sel.className = 'vote' + (v==='O' ? ' is-o' : (v==='X' ? ' is-x' : ''));
+  area.querySelectorAll('select.vote').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const n = sel.dataset.name, d = Number(sel.dataset.day), v = sel.value;
+      if(!S.votes[n]) S.votes[n] = {};
+      if(v) S.votes[n][d] = v; else delete S.votes[n][d];
+      sel.className = 'vote' + (v === 'O' ? ' is-o' : (v === 'X' ? ' is-x' : ''));
       renderResult(days);
-      save();
+      writeVote(n, d, v);
     });
   });
 
-  area.querySelectorAll('[data-del]').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var removed = S.members[parseInt(btn.dataset.del,10)];
-      S.members.splice(parseInt(btn.dataset.del,10), 1);
-      Object.keys(S.votes).forEach(function(k){ delete S.votes[k][removed]; });
-      renderTable(); save();
+  area.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const name = btn.dataset.del;
+      S.members = S.members.filter(m => m.name !== name);
+      delete S.votes[name];
+      renderTable();
+      await writeDeleteMember(name);
     });
   });
 
@@ -375,14 +521,13 @@ function renderTable(){
 }
 
 function openAddForm(){
-  var slot = $('addSlot');
-  slot.innerHTML = '<div class="add-form">' +
+  $('addSlot').innerHTML = '<div class="add-form">' +
     '<input class="name-input" id="newName" placeholder="이름" autocomplete="off">' +
     '<button class="mini-primary" id="confirmAdd">확정</button>' +
     '<button class="mini-ghost" id="cancelAdd">취소</button></div>';
-  var input = $('newName');
+  const input = $('newName');
   input.focus();
-  input.addEventListener('keydown', function(e){
+  input.addEventListener('keydown', (e) => {
     if(e.key === 'Enter'){ e.preventDefault(); commitAdd(); }
     if(e.key === 'Escape'){ renderTable(); }
   });
@@ -390,45 +535,48 @@ function openAddForm(){
   $('cancelAdd').addEventListener('click', renderTable);
 }
 
-function commitAdd(){
-  var v = ($('newName').value || '').trim();
+async function commitAdd(){
+  const v = ($('newName').value || '').trim();
   if(!v){ $('newName').focus(); return; }
-  if(S.members.indexOf(v) === -1) S.members.push(v);
-  renderTable(); save();
+  if(!S.members.some(m => m.name === v)){
+    const next = S.members.reduce((m, x) => Math.max(m, x.sort_order || 0), 0) + 1;
+    S.members.push({ name:v, sort_order:next });
+  }
+  renderTable();
+  await writeAddMember(v);
 }
 
 function renderResult(days){
-  var list = $('rankList');
+  const list = $('rankList');
   if(!days || !days.length){
     $('bestDay').textContent = '—';
     $('bestMeta').textContent = '아직 투표가 없습니다.';
     list.innerHTML = '';
     return;
   }
-  var data = bucket();
-  var counts = days.map(function(d){
-    var c = 0;
-    S.members.forEach(function(n){ if(data[n] && data[n][d.day] === 'O') c++; });
+  const counts = days.map(d => {
+    let c = 0;
+    S.members.forEach(({ name }) => { if(S.votes[name] && S.votes[name][d.day] === 'O') c++; });
     return { label:d.label, count:c };
   });
-  var max = Math.max.apply(null, counts.map(function(c){ return c.count; }));
+  const max = Math.max(...counts.map(c => c.count));
   if(max === 0){
     $('bestDay').textContent = '—';
     $('bestMeta').textContent = 'O 표시가 아직 없습니다.';
     list.innerHTML = '';
     return;
   }
-  var winners = counts.filter(function(c){ return c.count === max; });
-  var head = S.month + '월 ' + winners[0].label;
+  const winners = counts.filter(c => c.count === max);
+  let head = S.month + '월 ' + winners[0].label;
   if(winners.length === 2) head += ', ' + winners[1].label;
   else if(winners.length > 2) head += ' 외 ' + (winners.length - 1) + '일';
   $('bestDay').textContent = head;
   $('bestMeta').textContent = 'O ' + max + '표 · 전체 ' + S.members.length + '명 중' +
     (winners.length > 2 ? ' · 공동 1위 ' + winners.length + '일' : '');
 
-  var top = counts.slice().sort(function(a,b){ return b.count - a.count; }).slice(0,5);
-  list.innerHTML = top.map(function(c){
-    var pct = Math.round(c.count / max * 100), isTop = c.count === max;
+  const top = [...counts].sort((a, b) => b.count - a.count).slice(0, 5);
+  list.innerHTML = top.map(c => {
+    const pct = Math.round(c.count / max * 100), isTop = c.count === max;
     return '<div class="rank-item ' + (isTop ? 'is-top' : 'is-rest') + '">' +
       '<span class="rank-label">' + (isTop ? '<span class="rank-badge">1위</span>' : '') + S.month + '월 ' + c.label + '</span>' +
       '<span class="rank-bar-track"><span class="rank-bar" style="width:' + pct + '%"></span></span>' +
@@ -439,29 +587,14 @@ function renderResult(days){
 function renderAll(){ renderPicker(); renderTable(); }
 
 /* ---------- 시작 ---------- */
-document.getElementById('root').innerHTML = SHELL;
-$('btnActivate').onclick = function(){ setActive(true); };
-$('btnInactive').onclick = function(){ setActive(false); };
-$('yearPrev').onclick = function(){ S.year--; renderAll(); save(); };
-$('yearNext').onclick = function(){ S.year++; renderAll(); save(); };
-renderAll();
+$('btnActivate').onclick = () => { S.active = true; renderAll(); writeBoard(); };
+$('btnInactive').onclick = () => { S.active = false; S.month = null; renderAll(); writeBoard(); };
+$('yearPrev').onclick = async () => { S.year--; renderPicker(); if(sb) await loadVotes(); renderTable(); writeBoard(); };
+$('yearNext').onclick = async () => { S.year++; renderPicker(); if(sb) await loadVotes(); renderTable(); writeBoard(); };
 
-setSync('idle', '연결 중');
-if(typeof claude !== 'undefined' && claude && typeof claude.use === 'function'){
-  claude.use('artifact').then(function(a){
-    api = a;
-    if(!api){
-      setSync('warn', '미리보기 · 저장 안 됨');
-      $('footNote').textContent = '이 화면은 미리보기입니다. 공유 링크로 열면 입력한 값이 저장되어 모두에게 같이 보입니다.';
-    } else {
-      setSync('ok', pending ? '저장 중' : '저장됨');
-      if(pending) save();
-    }
-  }).catch(function(){ setSync('warn', '미리보기 · 저장 안 됨'); });
-} else {
-  setSync('warn', '미리보기 · 저장 안 됨');
-}
-})();
+renderAll();
+await connect();
+renderAll();
 </script>
 </body>
 </html>
