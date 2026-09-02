@@ -94,7 +94,12 @@ h2.display{font-size:40px;font-weight:600;line-height:1.10;margin:0 0 var(--sm);
 .month-chip.selected{border:2px solid var(--primary-focus);color:var(--primary);font-weight:600;}
 .picker-hint{margin-top:var(--lg);text-align:center;}
 
-.table-scroll{margin-top:var(--xl);overflow-x:auto;border:1px solid var(--hairline);border-radius:var(--r-lg);background:var(--canvas);}
+/* 표 스크롤 박스. 세로도 이 안에서 스크롤되므로 날짜행(thead)과 이름열이 함께 고정됩니다.
+   높이는 화면에서 상단 내비(44+52px)와 여백을 뺀 값. */
+.table-hint{margin-top:var(--xl);display:flex;gap:var(--md);flex-wrap:wrap;justify-content:center;}
+.table-hint kbd{font-family:inherit;font-size:12px;border:1px solid var(--hairline);border-radius:6px;padding:1px 6px;background:var(--surface-pearl);color:var(--ink);}
+.table-scroll{margin-top:var(--sm);overflow:auto;max-height:calc(100vh - 96px - var(--lg));border:1px solid var(--hairline);border-radius:var(--r-lg);background:var(--canvas);}
+.table-scroll.is-dragging{user-select:none;-webkit-user-select:none;cursor:crosshair;}
 table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;}
 th,td{border-bottom:1px solid var(--hairline);white-space:nowrap;}
 thead th{position:sticky;top:0;z-index:3;background:var(--canvas-parchment);font-size:14px;font-weight:600;letter-spacing:-.224px;color:var(--ink);padding:var(--sm) var(--md);text-align:center;font-variant-numeric:tabular-nums;}
@@ -105,10 +110,14 @@ td.name-col{font-size:17px;letter-spacing:-.374px;}
 .del-btn{width:22px;height:22px;flex:0 0 22px;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;color:var(--ink-muted-48);border:1px solid var(--hairline);border-radius:50%;background:var(--surface-pearl);}
 .del-btn:active{transform:scale(.9);}
 td.vote-cell{padding:var(--xxs) var(--xs);text-align:center;}
-select.vote{-webkit-appearance:none;appearance:none;background:var(--canvas);color:var(--ink-muted-48);border:1px solid var(--hairline);border-radius:var(--r-pill);font-family:inherit;font-size:14px;letter-spacing:-.224px;padding:6px 14px;text-align:center;text-align-last:center;min-width:60px;cursor:pointer;transition:box-shadow .5s ease;}
-select.vote.is-o{border:2px solid var(--primary-focus);color:var(--primary);font-weight:600;}
-select.vote.is-x{border:1px solid var(--hairline);color:var(--ink);font-weight:600;background:var(--canvas-parchment);}
-select.vote.just-changed{box-shadow:0 0 0 4px rgba(41,151,255,.28);}
+/* 투표 셀 버튼. 클릭마다 – → O → X → – 순환, 마우스 드래그로 같은 값 채우기 */
+button.vote{background:var(--canvas);color:var(--ink-muted-48);border:1px solid var(--hairline);border-radius:var(--r-pill);font-family:inherit;font-size:14px;letter-spacing:-.224px;padding:6px 14px;min-width:60px;line-height:1.3;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:box-shadow .5s ease;}
+button.vote.is-o{border:2px solid var(--primary-focus);color:var(--primary);font-weight:600;padding:5px 13px;}
+button.vote.is-x{border:1px solid var(--hairline);color:var(--ink);font-weight:600;background:var(--canvas-parchment);}
+button.vote.just-changed{box-shadow:0 0 0 4px rgba(41,151,255,.28);}
+button.vote.is-preview{box-shadow:0 0 0 3px rgba(41,151,255,.45);transition:none;}
+button.vote.is-origin{box-shadow:0 0 0 3px var(--primary-focus);transition:none;}
+.is-dragging button.vote,.is-dragging button.vote:active{transform:none;}
 .add-btn{font-size:14px;letter-spacing:-.224px;color:var(--primary);border:1px solid var(--hairline);border-radius:var(--r-pill);padding:6px 16px;background:var(--surface-pearl);}
 .add-form{display:flex;gap:var(--xs);align-items:center;}
 input.name-input{font-family:inherit;font-size:17px;letter-spacing:-.374px;color:var(--ink);background:var(--canvas);border:1px solid rgba(0,0,0,.08);border-radius:var(--r-pill);padding:8px 16px;height:40px;width:130px;}
@@ -203,7 +212,7 @@ footer .fine{font-size:12px;letter-spacing:-.12px;color:var(--ink-muted-48);marg
   <div class="wrap-wide">
     <div class="center">
       <h2 class="display" id="tableTitle">투표표</h2>
-      <p class="lead" id="tableSub">주말을 제외한 평일에 O / X 를 선택하세요.</p>
+      <p class="lead" id="tableSub">주말과 공휴일을 제외한 평일에 O / X 를 선택하세요.</p>
     </div>
     <div id="tableArea"></div>
   </div>
@@ -222,6 +231,7 @@ footer .fine{font-size:12px;letter-spacing:-.12px;color:var(--ink-muted-48);marg
   <div class="wrap"><p class="fine" id="footNote">라잇웨잇 동호회 일정 투표</p></div>
 </footer>
 
+<script src="./holidays.js"></script>
 <script type="module">
 /* ============================================================
    ① 여기 두 줄만 본인 프로젝트 값으로 바꾸세요.
@@ -344,6 +354,37 @@ async function writeVote(member, day, value){
   else setSync('ok', '저장됨');
 }
 
+/* 드래그 채우기 결과를 한 번에 저장. changes = [{member, day, value}] */
+async function writeVotesBulk(changes){
+  if(!sb || !changes.length) return;
+  setSync('busy', '저장 중');
+  const key = monthKey(), now = new Date().toISOString();
+  let failed = false;
+
+  const ups = changes.filter(c => c.value)
+    .map(c => ({ month:key, member:c.member, day:c.day, value:c.value, updated_at:now }));
+  if(ups.length){
+    const { error } = await sb.from('votes').upsert(ups);
+    if(error) failed = true;
+  }
+
+  const dels = changes.filter(c => !c.value);
+  if(dels.length){
+    const members = [...new Set(dels.map(d => d.member))];
+    const days    = [...new Set(dels.map(d => d.day))];
+    if(members.length === 1 || days.length === 1){
+      // 한 줄(가로 또는 세로) 범위라서 member × day 조합이 정확히 dels 와 같습니다.
+      const { error } = await sb.from('votes').delete().eq('month', key).in('member', members).in('day', days);
+      if(error) failed = true;
+    } else {
+      const rs = await Promise.all(dels.map(d => sb.from('votes').delete().match({ month:key, member:d.member, day:d.day })));
+      if(rs.some(r => r.error)) failed = true;
+    }
+  }
+  if(failed) flashError('일부 저장 실패 · 다시 시도하세요');
+  else setSync('ok', '저장됨');
+}
+
 async function writeBoard(){
   if(!sb) return;
   setSync('busy', '저장 중');
@@ -404,13 +445,13 @@ function subscribe(){
 
 /* 셀 하나만 갱신 — 표 전체를 다시 그리지 않아 입력 중 화면이 튀지 않습니다. */
 function patchCell(member, day, value){
-  const sel = document.querySelector(
-    'select.vote[data-name="' + (window.CSS && CSS.escape ? CSS.escape(member) : member) + '"][data-day="' + day + '"]'
+  const btn = document.querySelector(
+    'button.vote[data-name="' + (window.CSS && CSS.escape ? CSS.escape(member) : member) + '"][data-day="' + day + '"]'
   );
-  if(sel){
-    sel.value = value || '';
-    sel.className = 'vote' + (value === 'O' ? ' is-o' : (value === 'X' ? ' is-x' : '')) + ' just-changed';
-    setTimeout(() => sel.classList.remove('just-changed'), 900);
+  if(btn){
+    paintCell(btn, value);
+    btn.classList.add('just-changed');
+    setTimeout(() => btn.classList.remove('just-changed'), 900);
   }
   renderResult(weekdaysOf(S.year, S.month));
 }
@@ -445,13 +486,27 @@ function renderPicker(){
   }
 }
 
+// holidays.js 가 제공하는 공휴일 맵. 파일이 없거나 해당 연도가 없으면 빈 객체.
+function holidaysOf(year){
+  const all = (typeof window !== 'undefined' && window.HOLIDAYS) || {};
+  return all[String(year)] || {};
+}
+function holidayName(year, month, day){
+  const key = String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+  return holidaysOf(year)[key] || null;
+}
+
+// 주말과 공휴일을 제외한 평일 목록. 제외된 평일 공휴일은 skipped 에 담아 안내에 쓴다.
 function weekdaysOf(year, month){
   const out = [];
+  out.skipped = [];
   if(!month) return out;
   const last = new Date(year, month, 0).getDate();
   for(let d = 1; d <= last; d++){
     const w = new Date(year, month - 1, d).getDay();
     if(w === 0 || w === 6) continue;
+    const h = holidayName(year, month, d);
+    if(h){ out.skipped.push({ day:d, name:h }); continue; }
     out.push({ day:d, label:d + '일(' + DOW[w] + ')' });
   }
   return out;
@@ -462,30 +517,34 @@ function renderTable(){
   if(!S.active || !S.month){
     area.innerHTML = '<div class="empty-state caption">먼저 <strong>Activate</strong> 후 연도와 달을 선택하세요.</div>';
     $('tableTitle').textContent = '투표표';
-    $('tableSub').textContent = '주말을 제외한 평일에 O / X 를 선택하세요.';
+    $('tableSub').textContent = '주말과 공휴일을 제외한 평일에 O / X 를 선택하세요.';
     renderResult([]);
     return;
   }
 
   const days = weekdaysOf(S.year, S.month);
   $('tableTitle').textContent = S.year + '년 ' + S.month + '월';
-  $('tableSub').textContent = '평일 ' + days.length + '일 · 인원 ' + S.members.length + '명';
+  let sub = '평일 ' + days.length + '일 · 인원 ' + S.members.length + '명';
+  if(days.skipped.length){
+    sub += ' · 공휴일 제외: ' + days.skipped.map(h => h.day + '일 ' + h.name).join(', ');
+  }
+  $('tableSub').textContent = sub;
 
-  let html = '<div class="table-scroll"><table><thead><tr><th class="name-col">이름</th>';
+  let html = '<div class="table-hint caption">' +
+    '<span><kbd>클릭</kbd> – &rarr; O &rarr; X &rarr; – 순환</span>' +
+    '<span><kbd>드래그</kbd> 셀을 누른 채 가로·세로로 끌면 같은 값으로 채움</span></div>';
+  html += '<div class="table-scroll" id="tableScroll"><table><thead><tr><th class="name-col">이름</th>';
   days.forEach(d => { html += '<th>' + d.label + '</th>'; });
   html += '</tr></thead><tbody>';
 
-  S.members.forEach(({ name }) => {
+  S.members.forEach(({ name }, r) => {
     html += '<tr><td class="name-col"><div class="name-cell"><span>' + esc(name) + '</span>' +
             '<button class="del-btn" data-del="' + esc(name) + '" aria-label="' + esc(name) + ' 삭제">&#215;</button></div></td>';
-    days.forEach(d => {
+    days.forEach((d, c) => {
       const v = (S.votes[name] && S.votes[name][d.day]) || '';
-      const cls = v === 'O' ? ' is-o' : (v === 'X' ? ' is-x' : '');
-      html += '<td class="vote-cell"><select class="vote' + cls + '" data-name="' + esc(name) + '" data-day="' + d.day + '">' +
-              '<option value=""' + (v === '' ? ' selected' : '') + '>–</option>' +
-              '<option value="O"' + (v === 'O' ? ' selected' : '') + '>O</option>' +
-              '<option value="X"' + (v === 'X' ? ' selected' : '') + '>X</option>' +
-              '</select></td>';
+      html += '<td class="vote-cell"><button type="button" class="vote' + voteCls(v) + '"' +
+              ' data-name="' + esc(name) + '" data-day="' + d.day + '" data-r="' + r + '" data-c="' + c + '"' +
+              ' aria-label="' + esc(name) + ' ' + d.label + '">' + voteText(v) + '</button></td>';
     });
     html += '</tr>';
   });
@@ -494,17 +553,6 @@ function renderTable(){
           '<button class="add-btn" id="addBtn">[+] 인원 추가</button></div></td>' +
           '<td class="vote-cell" colspan="' + days.length + '"></td></tr></tbody></table></div>';
   area.innerHTML = html;
-
-  area.querySelectorAll('select.vote').forEach(sel => {
-    sel.addEventListener('change', () => {
-      const n = sel.dataset.name, d = Number(sel.dataset.day), v = sel.value;
-      if(!S.votes[n]) S.votes[n] = {};
-      if(v) S.votes[n][d] = v; else delete S.votes[n][d];
-      sel.className = 'vote' + (v === 'O' ? ' is-o' : (v === 'X' ? ' is-x' : ''));
-      renderResult(days);
-      writeVote(n, d, v);
-    });
-  });
 
   area.querySelectorAll('[data-del]').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -518,6 +566,134 @@ function renderTable(){
 
   $('addBtn').addEventListener('click', openAddForm);
   renderResult(days);
+}
+
+/* ============================================================
+   셀 조작 — 클릭 순환과 드래그 채우기
+   표는 renderTable 마다 다시 그려지므로 리스너는 tableArea 에 한 번만 붙입니다.
+   ============================================================ */
+const NEXT_VALUE = { '':'O', 'O':'X', 'X':'' };
+const voteCls  = (v) => v === 'O' ? ' is-o' : (v === 'X' ? ' is-x' : '');
+const voteText = (v) => v || '–';
+const cellValue = (btn) => (S.votes[btn.dataset.name] && S.votes[btn.dataset.name][Number(btn.dataset.day)]) || '';
+
+function paintCell(btn, value){
+  btn.className = 'vote' + voteCls(value);
+  btn.textContent = voteText(value);
+}
+
+/* 상태 반영 + 화면 반영. DB 저장은 호출한 쪽에서 결정합니다. 바뀌었으면 true. */
+function setVote(btn, value){
+  const n = btn.dataset.name, d = Number(btn.dataset.day);
+  if(cellValue(btn) === value) return false;
+  if(!S.votes[n]) S.votes[n] = {};
+  if(value) S.votes[n][d] = value; else delete S.votes[n][d];
+  paintCell(btn, value);
+  return true;
+}
+
+const drag = {
+  active:false, moved:false, justDragged:false,
+  origin:null, axis:null, value:'', x0:0, y0:0,
+  targets:new Map()          // key 'r:c' → button (미리보기 중인 셀)
+};
+const DRAG_THRESHOLD = 8;    // px. 이보다 작게 움직이면 클릭으로 취급
+
+function cellAt(r, c){
+  return $('tableArea').querySelector('button.vote[data-r="' + r + '"][data-c="' + c + '"]');
+}
+
+function clearPreview(){
+  drag.targets.forEach(btn => { paintCell(btn, cellValue(btn)); btn.classList.remove('is-preview'); });
+  drag.targets.clear();
+  if(drag.origin) drag.origin.classList.remove('is-origin');
+}
+
+function updatePreview(r1, c1){
+  const r0 = Number(drag.origin.dataset.r), c0 = Number(drag.origin.dataset.c);
+  const want = new Map();
+  if(drag.axis === 'h'){
+    for(let c = Math.min(c0, c1); c <= Math.max(c0, c1); c++){ const b = cellAt(r0, c); if(b) want.set(r0 + ':' + c, b); }
+  } else {
+    for(let r = Math.min(r0, r1); r <= Math.max(r0, r1); r++){ const b = cellAt(r, c0); if(b) want.set(r + ':' + c0, b); }
+  }
+  drag.targets.forEach((btn, k) => {
+    if(!want.has(k)){ paintCell(btn, cellValue(btn)); btn.classList.remove('is-preview'); }
+  });
+  want.forEach((btn, k) => {
+    if(!drag.targets.has(k)){ paintCell(btn, drag.value); btn.classList.add('is-preview'); }
+  });
+  drag.targets = want;
+  drag.origin.classList.add('is-origin');
+}
+
+function endDrag(commit){
+  const scroll = $('tableScroll');
+  if(scroll) scroll.classList.remove('is-dragging');
+  if(!drag.active) return;
+  drag.active = false;
+  if(drag.moved){
+    drag.justDragged = true;          // 곧 따라오는 click 이벤트는 무시
+    const changes = [];
+    if(commit){
+      drag.targets.forEach(btn => {
+        if(setVote(btn, drag.value)) changes.push({ member:btn.dataset.name, day:Number(btn.dataset.day), value:drag.value });
+      });
+    }
+    clearPreview();
+    if(changes.length){
+      renderResult(weekdaysOf(S.year, S.month));
+      writeVotesBulk(changes);
+    }
+  }
+  drag.origin = null; drag.axis = null; drag.moved = false;
+}
+
+function initCellInteractions(){
+  const area = $('tableArea');
+
+  // 클릭: – → O → X → – (현재 값 기준이라 다른 사람이 바꾼 값 위에서도 자연스럽게 이어집니다)
+  area.addEventListener('click', (e) => {
+    const btn = e.target.closest('button.vote');
+    if(!btn) return;
+    if(drag.justDragged){ drag.justDragged = false; return; }
+    const v = NEXT_VALUE[cellValue(btn)];
+    setVote(btn, v);
+    renderResult(weekdaysOf(S.year, S.month));
+    writeVote(btn.dataset.name, Number(btn.dataset.day), v);
+  });
+
+  // 드래그 시작 (마우스·펜만. 터치는 표 스크롤과 충돌하므로 탭 순환만 지원)
+  area.addEventListener('pointerdown', (e) => {
+    const btn = e.target.closest('button.vote');
+    if(!btn || e.button !== 0 || e.pointerType === 'touch') return;
+    drag.active = true; drag.moved = false; drag.justDragged = false;
+    drag.origin = btn; drag.axis = null; drag.value = cellValue(btn);
+    drag.x0 = e.clientX; drag.y0 = e.clientY;
+    e.preventDefault();               // 텍스트 선택 방지
+  });
+
+  document.addEventListener('pointermove', (e) => {
+    if(!drag.active) return;
+    const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+    if(!drag.axis){
+      if(Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+      drag.axis = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';   // 첫 이동 각도로 방향 결정 후 고정
+      drag.moved = true;
+      const scroll = $('tableScroll'); if(scroll) scroll.classList.add('is-dragging');
+    }
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const over = el && el.closest ? el.closest('button.vote, td.vote-cell') : null;
+    if(!over) return;                 // 표 밖이면 마지막 범위 유지
+    const btn = over.matches('button.vote') ? over : over.querySelector('button.vote');
+    if(!btn) return;
+    updatePreview(Number(btn.dataset.r), Number(btn.dataset.c));
+  });
+
+  document.addEventListener('pointerup', () => endDrag(true));
+  document.addEventListener('pointercancel', () => endDrag(false));
+  window.addEventListener('blur', () => endDrag(false));
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && drag.active) endDrag(false); });
 }
 
 function openAddForm(){
@@ -592,6 +768,7 @@ $('btnInactive').onclick = () => { S.active = false; S.month = null; renderAll()
 $('yearPrev').onclick = async () => { S.year--; renderPicker(); if(sb) await loadVotes(); renderTable(); writeBoard(); };
 $('yearNext').onclick = async () => { S.year++; renderPicker(); if(sb) await loadVotes(); renderTable(); writeBoard(); };
 
+initCellInteractions();
 renderAll();
 await connect();
 renderAll();
